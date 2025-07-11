@@ -1,0 +1,9 @@
+<div class="bg-gray-900 min-h-screen font-sans">
+  <div *ngIf="loading" class="flex items-center justify-center h-screen bg-gray-900 text-white">
+    <div class="text-xl">Authenticating...</div>
+  </div>
+
+  <ng-container *ngIf="!loading && user">
+    <router-outlet></router-outlet>
+  </ng-container>
+</div>
