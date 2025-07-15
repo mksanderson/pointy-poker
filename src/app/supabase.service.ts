@@ -5,19 +5,47 @@ import { Session } from './types';
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-// Custom in-memory storage adapter to avoid localStorage issues in sandboxed environments
-const inMemoryStorage = new Map<string, string>();
-const customStorageAdapter = {
-  getItem: (key: string) => {
-    return inMemoryStorage.get(key) || null;
-  },
-  setItem: (key: string, value: string) => {
-    inMemoryStorage.set(key, value);
-  },
-  removeItem: (key: string) => {
-    inMemoryStorage.delete(key);
-  },
+// Custom storage adapter that falls back to in-memory if localStorage is not available
+const createStorageAdapter = () => {
+  const inMemoryStorage = new Map<string, string>();
+  
+  // Try to use localStorage, fall back to in-memory if not available
+  const hasLocalStorage = (() => {
+    try {
+      const test = '__test__';
+      localStorage.setItem(test, test);
+      localStorage.removeItem(test);
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+
+  return {
+    getItem: (key: string) => {
+      if (hasLocalStorage) {
+        return localStorage.getItem(key);
+      }
+      return inMemoryStorage.get(key) || null;
+    },
+    setItem: (key: string, value: string) => {
+      if (hasLocalStorage) {
+        localStorage.setItem(key, value);
+      } else {
+        inMemoryStorage.set(key, value);
+      }
+    },
+    removeItem: (key: string) => {
+      if (hasLocalStorage) {
+        localStorage.removeItem(key);
+      } else {
+        inMemoryStorage.delete(key);
+      }
+    },
+  };
 };
+
+const customStorageAdapter = createStorageAdapter();
 
 
 @Injectable({

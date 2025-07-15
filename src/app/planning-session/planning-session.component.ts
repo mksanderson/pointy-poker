@@ -74,6 +74,11 @@ export class PlanningSessionComponent implements OnInit, OnDestroy {
         // 3. If we find an old participant with our alias, migrate them
         if (oldUserId && oldUserId !== this.userId) {
           await this.supabase.migrateParticipant(this.sessionId, oldUserId, this.userId, savedAlias);
+          
+          // 4. Also migrate facilitator rights if the old user was the facilitator
+          if (initialSession.created_by === oldUserId) {
+            await this.supabase.migrateFacilitator(this.sessionId, oldUserId, this.userId);
+          }
         }
       }
     } else {
