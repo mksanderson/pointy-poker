@@ -1,6 +1,6 @@
 [build]
 command = "npm run build:netlify"
-publish = "dist/pointy-poker"
+publish = "dist/pointy-poker/browser"
 
 [build.environment]
 NODE_VERSION = "18"
