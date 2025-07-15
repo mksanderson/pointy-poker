@@ -2,7 +2,7 @@ node_modules
 .angular
 dist
 
-# Development environment only (keep your dev keys local)
+# Development environment only - keep production template in repo for builds
 src/environments/environment.ts
 
 # Local environment variables
