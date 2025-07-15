@@ -1,42 +1,38 @@
 #!/bin/bash
 
-# Netlify build script for Angular with environment variable replacement
+# Simple Netlify build script that uses Node.js for environment replacement
 
-echo "🚀 Starting production build with environment variables..."
-
-# Check Node.js version
+echo "🚀 Starting Netlify build process..."
 echo "📋 Node.js version: $(node --version)"
 
-# Replace environment variables in the production environment file
-if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
-    echo "❌ Error: SUPABASE_URL and SUPABASE_ANON_KEY environment variables must be set"
+# Run the Node.js script to replace environment variables
+echo "📝 Replacing environment variables..."
+node scripts/replace-env.js
+
+# Check if the script succeeded
+if [ $? -ne 0 ]; then
+    echo "❌ Environment variable replacement failed"
     exit 1
 fi
-
-echo "📝 Replacing environment variables..."
-echo "   SUPABASE_URL: $SUPABASE_URL"
-echo "   SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:0:20}..."
-
-# Use envsubst to replace environment variables in the production file
-envsubst < src/environments/environment.prod.ts > src/environments/environment.prod.tmp.ts
-mv src/environments/environment.prod.tmp.ts src/environments/environment.prod.ts
 
 echo "🔧 Building Angular application for production..."
 
-# Build using Angular's production configuration
+# Build using npm script (which calls ng build --configuration production)
 npm run build:prod
 
-echo "📁 Checking build output..."
-if [ -d "dist/pointy-poker/browser" ]; then
-    echo "✅ Build output found at dist/pointy-poker/browser"
-    ls -la dist/pointy-poker/browser
-elif [ -d "dist/pointy-poker" ]; then
-    echo "✅ Build output found at dist/pointy-poker"
-    ls -la dist/pointy-poker
+# Check build result
+if [ $? -eq 0 ]; then
+    echo "✅ Build completed successfully!"
+
+    # Check if build output exists
+    if [ -d "dist/pointy-poker/browser" ]; then
+        echo "📁 Build output confirmed at dist/pointy-poker/browser"
+    elif [ -d "dist/pointy-poker" ]; then
+        echo "📁 Build output confirmed at dist/pointy-poker"
+    else
+        echo "⚠️  Build output directory not found, but build command succeeded"
+    fi
 else
-    echo "❌ No build output found in dist/"
-    ls -la dist/ || echo "dist/ directory doesn't exist"
+    echo "❌ Build failed"
     exit 1
 fi
-
-echo "✅ Build completed successfully!"

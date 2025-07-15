@@ -5,11 +5,6 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# Environment variables will be injected here by Netlify
-# Set these in your Netlify dashboard:
-# SUPABASE_URL = your production Supabase URL
-# SUPABASE_ANON_KEY = your production Supabase anon key
-
 [[redirects]]
   from = "/*"
   to = "/index.html"

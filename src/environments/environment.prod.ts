@@ -1,9 +1,7 @@
-// This file can be replaced during build by using the `fileReplacements` array.
-// `ng build` replaces `environment.ts` with `environment.prod.ts`.
-// The list of file replacements can be found in `angular.json`.
-
+// src/environments/environment.prod.ts (Production)
+// This file will be overwritten by the build script with actual environment variables
 export const environment = {
     production: true,
-    supabaseUrl: '${SUPABASE_URL}',
-    supabaseKey: '${SUPABASE_ANON_KEY}'
+    supabaseUrl: 'PLACEHOLDER_SUPABASE_URL',
+    supabaseKey: 'PLACEHOLDER_SUPABASE_ANON_KEY'
 };
