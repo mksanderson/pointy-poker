@@ -19,7 +19,15 @@
             <h2 class="text-2xl font-semibold mb-6 text-center text-gray-300">
               <span *ngIf="session.current_ticket; else castVote">Voting on: </span>
               <ng-template #castVote>Cast Your Vote</ng-template>
-              <span class="text-teal-400 font-bold">{{ session.current_ticket }}</span>
+              <span class="text-teal-400 font-bold">
+                <a *ngIf="currentTicketDisplay.isUrl; else plainText" 
+                   [href]="currentTicketDisplay.url" 
+                   target="_blank" 
+                   class="hover:text-teal-300 underline">
+                  {{ currentTicketDisplay.ticketName }}
+                </a>
+                <ng-template #plainText>{{ currentTicketDisplay.ticketName }}</ng-template>
+              </span>
             </h2>
             <div class="flex flex-wrap justify-center gap-4">
               <button *ngFor="let card of votingCards" (click)="vote(card)"
@@ -45,7 +53,7 @@
             <div *ngIf="isFacilitator && !session.votes_revealed" class="mb-6 pb-6 border-b border-gray-700">
               <h3 class="text-xl font-semibold mb-2">Set Ticket for Round</h3>
               <div class="flex gap-2">
-                <input type="text" [(ngModel)]="jiraTicket" placeholder="e.g., PROJ-123" class="flex-grow p-2 bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 text-white" />
+                <input type="text" [(ngModel)]="jiraTicket" placeholder="e.g., PROJ-123 or Jira URL" class="flex-grow p-2 bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 text-white" />
                 <button (click)="setTicket()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">Set</button>
               </div>
             </div>

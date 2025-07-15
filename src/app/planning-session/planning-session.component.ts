@@ -173,6 +173,25 @@ export class PlanningSessionComponent implements OnInit, OnDestroy {
     }
   }
 
+  extractTicketFromUrl(input: string): { isUrl: boolean; ticketName: string; url?: string } {
+    const urlRegex = /^https?:\/\/.+/i;
+    if (!urlRegex.test(input)) {
+      return { isUrl: false, ticketName: input };
+    }
+
+    // Extract ticket name from Jira URL patterns
+    const jiraTicketRegex = /([A-Z]+-\d+)/;
+    const match = input.match(jiraTicketRegex);
+    const ticketName = match ? match[1] : input;
+
+    return { isUrl: true, ticketName, url: input };
+  }
+
+  get currentTicketDisplay(): { isUrl: boolean; ticketName: string; url?: string } {
+    const currentTicket = this.session?.current_ticket || '';
+    return this.extractTicketFromUrl(currentTicket);
+  }
+
   async setTicket() {
     if (!this.isFacilitator) return;
     await this.supabase.updateSession(this.sessionId, {current_ticket: this.jiraTicket.trim()});
