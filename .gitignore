@@ -1,4 +1,22 @@
 node_modules
 .angular
 dist
-environment.ts
+
+# Development environment only (keep your dev keys local)
+src/environments/environment.ts
+
+# Local environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Angular specific
+.angular/cache
