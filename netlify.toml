@@ -1,9 +1,9 @@
 [build]
-command = "npm run build:netlify"
-publish = "dist/pointy-poker/browser"
+  command = "npm run build:netlify"
+  publish = "dist/pointy-poker/browser"
 
 [build.environment]
-NODE_VERSION = "18"
+  NODE_VERSION = "20"
 
 # Environment variables will be injected here by Netlify
 # Set these in your Netlify dashboard:
@@ -11,6 +11,6 @@ NODE_VERSION = "18"
 # SUPABASE_ANON_KEY = your production Supabase anon key
 
 [[redirects]]
-from = "/*"
-to = "/index.html"
-status = 200
+  from = "/*"
+  to = "/index.html"
+  status = 200
