@@ -136,4 +136,8 @@ export class SupabaseService {
   updateSession(sessionId: string, data: Partial<Session>) {
     return this.supabase.from('sessions').update(data).eq('id', sessionId);
   }
+
+  getFreshSession(sessionId: string) {
+    return this.supabase.from('sessions').select('*').eq('id', sessionId).single();
+  }
 }

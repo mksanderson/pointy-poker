@@ -205,11 +205,48 @@ export class PlanningSessionComponent implements OnInit, OnDestroy {
   async vote(card: string) {
     if (!this.aliasSet || !this.session) return;
     const newVote = this.currentVote === card ? null : card;
-    const newParticipants = {
-      ...this.session.participants,
-      [this.userId]: {...this.session.participants[this.userId], vote: newVote}
-    };
-    await this.supabase.updateSession(this.sessionId, {participants: newParticipants});
+    
+    // Optimistic update with retry logic
+    const maxRetries = 3;
+    let retryCount = 0;
+    
+    while (retryCount < maxRetries) {
+      try {
+        // Get fresh session data to avoid stale state
+        const { data: freshSession } = await this.supabase.getFreshSession(this.sessionId);
+        if (!freshSession) throw new Error('Session not found');
+        
+        const newParticipants = {
+          ...freshSession.participants,
+          [this.userId]: {...freshSession.participants[this.userId], vote: newVote}
+        };
+        
+        const { error } = await this.supabase.updateSession(this.sessionId, {participants: newParticipants});
+        
+        if (!error) {
+          // Success - update local state optimistically
+          this.session = { ...this.session, participants: newParticipants };
+          break;
+        }
+        
+        // Handle specific concurrency errors
+        if (error.message?.includes('concurrent update') || error.code === 'PGRST116') {
+          retryCount++;
+          await new Promise(resolve => setTimeout(resolve, 100 * retryCount)); // Exponential backoff
+          continue;
+        }
+        
+        throw error;
+      } catch (error) {
+        retryCount++;
+        if (retryCount >= maxRetries) {
+          console.error('Failed to update vote after retries:', error);
+          // Optionally show user feedback about the error
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100 * retryCount));
+      }
+    }
   }
 
   async revealVotes() {
@@ -219,15 +256,55 @@ export class PlanningSessionComponent implements OnInit, OnDestroy {
 
   async resetVoting() {
     if (!this.isFacilitator || !this.session) return;
-    const resetParticipants = Object.keys(this.session.participants).reduce((acc, key) => {
-      acc[key] = {...this.session!.participants[key], vote: null};
-      return acc;
-    }, {} as { [key: string]: Participant });
-    await this.supabase.updateSession(this.sessionId, {
-      participants: resetParticipants,
-      votes_revealed: false,
-      current_ticket: ''
-    });
+    
+    const maxRetries = 3;
+    let retryCount = 0;
+    
+    while (retryCount < maxRetries) {
+      try {
+        // Get fresh session data to avoid stale state
+        const { data: freshSession } = await this.supabase.getFreshSession(this.sessionId);
+        if (!freshSession) throw new Error('Session not found');
+        
+        const resetParticipants = Object.keys(freshSession.participants).reduce((acc, key) => {
+          acc[key] = {...freshSession.participants[key], vote: null};
+          return acc;
+        }, {} as { [key: string]: Participant });
+        
+        const { error } = await this.supabase.updateSession(this.sessionId, {
+          participants: resetParticipants,
+          votes_revealed: false,
+          current_ticket: ''
+        });
+        
+        if (!error) {
+          // Success - update local state
+          this.session = { 
+            ...this.session, 
+            participants: resetParticipants,
+            votes_revealed: false,
+            current_ticket: ''
+          };
+          break;
+        }
+        
+        // Handle specific concurrency errors
+        if (error.message?.includes('concurrent update') || error.code === 'PGRST116') {
+          retryCount++;
+          await new Promise(resolve => setTimeout(resolve, 100 * retryCount));
+          continue;
+        }
+        
+        throw error;
+      } catch (error) {
+        retryCount++;
+        if (retryCount >= maxRetries) {
+          console.error('Failed to reset voting after retries:', error);
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100 * retryCount));
+      }
+    }
   }
 
   copyLink() {
