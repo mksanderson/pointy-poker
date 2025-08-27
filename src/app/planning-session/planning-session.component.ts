@@ -168,9 +168,14 @@ export class PlanningSessionComponent implements OnInit, OnDestroy {
       this.currentVote = this.session.participants[this.userId].vote;
       this.aliasSet = true;
     } else {
-      // If user is not a participant, check sessionStorage for a saved alias
-      const savedAlias = sessionStorage.getItem(this.getAliasStorageKey());
-      this.alias = savedAlias || '';
+      // If user is not a participant yet, don't wipe out whatever the user has
+      // currently typed. Only populate from sessionStorage on first load when
+      // the input is empty. Subsequent realtime updates should not clear the
+      // field while the user is entering their alias.
+      if (!this.alias) {
+        const savedAlias = sessionStorage.getItem(this.getAliasStorageKey());
+        this.alias = savedAlias || '';
+      }
       this.aliasSet = false;
     }
     if (this.isFacilitator) {
