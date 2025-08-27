@@ -118,14 +118,21 @@ export class PlanningSessionComponent implements OnInit, OnDestroy {
 
   async setAlias() {
     if (!this.alias.trim() || !this.session) return;
+    const alias = this.alias.trim();
     const newParticipants = {
       ...this.session.participants,
-      [this.userId]: {alias: this.alias.trim(), vote: null}
+      [this.userId]: {alias, vote: null}
     };
-    await this.supabase.updateSession(this.sessionId, {participants: newParticipants});
+    const { error } = await this.supabase.updateSession(this.sessionId, {participants: newParticipants});
 
-    // Save alias to sessionStorage on successful set
-    sessionStorage.setItem(this.getAliasStorageKey(), this.alias.trim());
+    if (!error) {
+      // Optimistically update local state so the UI reflects the alias immediately
+      this.session = { ...this.session, participants: newParticipants };
+      this.aliasSet = true;
+
+      // Save alias to sessionStorage on successful set
+      sessionStorage.setItem(this.getAliasStorageKey(), alias);
+    }
   }
 
   // No changes needed for the rest of the file...
@@ -168,9 +175,14 @@ export class PlanningSessionComponent implements OnInit, OnDestroy {
       this.currentVote = this.session.participants[this.userId].vote;
       this.aliasSet = true;
     } else {
-      // If user is not a participant, check sessionStorage for a saved alias
-      const savedAlias = sessionStorage.getItem(this.getAliasStorageKey());
-      this.alias = savedAlias || '';
+      // If user is not a participant yet, don't wipe out whatever the user has
+      // currently typed. Only populate from sessionStorage on first load when
+      // the input is empty. Subsequent realtime updates should not clear the
+      // field while the user is entering their alias.
+      if (!this.alias) {
+        const savedAlias = sessionStorage.getItem(this.getAliasStorageKey());
+        this.alias = savedAlias || '';
+      }
       this.aliasSet = false;
     }
     if (this.isFacilitator) {
