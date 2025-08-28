@@ -4,11 +4,20 @@
       <div class="container mx-auto p-4 md:p-8 text-white">
         <header class="mb-8">
           <div class="flex flex-col md:flex-row justify-between items-center">
-            <h1 class="text-3xl md:text-4xl font-bold text-teal-400 truncate max-w-lg">{{ session.title }}</h1>
+            <h1
+              class="text-3xl md:text-4xl font-bold text-teal-400 truncate max-w-lg"
+            >
+              {{ session.title }}
+            </h1>
             <div class="flex items-center mt-4 md:mt-0">
-              <span class="text-gray-400 mr-2">Session ID: {{ sessionId }}</span>
-              <button (click)="copyLink()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md text-sm transition-colors w-24">
-                {{ copied ? 'Copied!' : 'Copy Link' }}
+              <span class="text-gray-400 mr-2"
+                >Session ID: {{ sessionId }}</span
+              >
+              <button
+                (click)="copyLink()"
+                class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md text-sm transition-colors w-24"
+              >
+                {{ copied ? "Copied!" : "Copy Link" }}
               </button>
             </div>
           </div>
@@ -17,64 +26,139 @@
         <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div class="lg:col-span-2 bg-gray-800 rounded-lg shadow-lg p-6">
             <h2 class="text-2xl font-semibold mb-6 text-center text-gray-300">
-              <span *ngIf="session.current_ticket; else castVote">Voting on: </span>
+              <span *ngIf="session.current_ticket; else castVote"
+                >Voting on:
+              </span>
               <ng-template #castVote>Cast Your Vote</ng-template>
               <span class="text-teal-400 font-bold">
-                <a *ngIf="currentTicketDisplay.isUrl; else plainText" 
-                   [href]="currentTicketDisplay.url" 
-                   target="_blank" 
-                   class="hover:text-teal-300 underline">
+                <a
+                  *ngIf="currentTicketDisplay.isUrl; else plainText"
+                  [href]="currentTicketDisplay.url"
+                  target="_blank"
+                  class="hover:text-teal-300 underline"
+                >
                   {{ currentTicketDisplay.ticketName }}
                 </a>
-                <ng-template #plainText>{{ currentTicketDisplay.ticketName }}</ng-template>
+                <ng-template #plainText>{{
+                  currentTicketDisplay.ticketName
+                }}</ng-template>
               </span>
             </h2>
             <div class="flex flex-wrap justify-center gap-4">
-              <button *ngFor="let card of votingCards" (click)="vote(card)"
-                      [ngClass]="{'bg-teal-500 text-white ring-4 ring-teal-300 transform -translate-y-2': currentVote === card, 'bg-gray-700 hover:bg-gray-600': currentVote !== card}"
-                      class="w-20 h-28 md:w-24 md:h-32 rounded-lg text-2xl md:text-3xl font-bold transition-all duration-200 flex items-center justify-center">
+              <button
+                *ngFor="let card of votingCards"
+                (click)="vote(card)"
+                [ngClass]="{
+                  'bg-teal-500 text-white ring-4 ring-teal-300 transform -translate-y-2':
+                    currentVote === card,
+                  'bg-gray-700 hover:bg-gray-600': currentVote !== card,
+                }"
+                class="w-20 h-28 md:w-24 md:h-32 rounded-lg text-2xl md:text-3xl font-bold transition-all duration-200 flex items-center justify-center"
+              >
                 {{ card }}
               </button>
             </div>
 
-            <div *ngIf="session.votes_revealed" class="mt-8 pt-6 border-t border-gray-700 text-center">
+            <div
+              *ngIf="session.votes_revealed"
+              class="mt-8 pt-6 border-t border-gray-700 text-center"
+            >
               <h3 class="text-2xl font-bold mb-4">Results</h3>
               <div class="flex flex-wrap justify-center gap-4">
-                <div *ngFor="let vote of voteCounts | keyvalue" class="bg-gray-700 rounded-lg p-4">
-                  <span class="text-4xl font-bold text-teal-400">{{ vote.key }}</span>
-                  <span class="block text-sm text-gray-400">{{ vote.value }} vote(s)</span>
+                <div
+                  *ngFor="let vote of voteCounts | keyvalue"
+                  class="bg-gray-700 rounded-lg p-4"
+                >
+                  <span class="text-4xl font-bold text-teal-400">{{
+                    vote.key
+                  }}</span>
+                  <span class="block text-sm text-gray-400"
+                    >{{ vote.value }} vote(s)</span
+                  >
                 </div>
               </div>
-              <p *ngIf="averageVote > 0" class="mt-4 text-xl">Average: {{ averageVote | number:'1.2-2' }}</p>
+              <p *ngIf="averageVote > 0" class="mt-4 text-xl">
+                Average: {{ averageVote | number: "1.2-2" }}
+              </p>
             </div>
           </div>
 
           <div class="bg-gray-800 rounded-lg shadow-lg p-6">
-            <div *ngIf="isFacilitator && !session.votes_revealed" class="mb-6 pb-6 border-b border-gray-700">
+            <div
+              *ngIf="isFacilitator && !session.votes_revealed"
+              class="mb-6 pb-6 border-b border-gray-700"
+            >
               <h3 class="text-xl font-semibold mb-2">Set Ticket for Round</h3>
-              <div class="flex gap-2">
-                <input type="text" [(ngModel)]="jiraTicket" placeholder="e.g., PROJ-123 or Jira URL" class="flex-grow p-2 bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 text-white" />
-                <button (click)="setTicket()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">Set</button>
-              </div>
+              <form (ngSubmit)="setTicket()" class="flex gap-2">
+                <input
+                  name="jiraTicket"
+                  type="text"
+                  [(ngModel)]="jiraTicket"
+                  placeholder="e.g., PROJ-123 or Jira URL"
+                  class="flex-grow p-2 bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 text-white"
+                />
+                <button
+                  type="submit"
+                  class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md"
+                >
+                  Set
+                </button>
+              </form>
             </div>
 
-            <h2 class="text-2xl font-semibold mb-4">Participants ({{ participantsArray.length }})</h2>
+            <h2 class="text-2xl font-semibold mb-4">
+              Participants ({{ participantsArray.length }})
+            </h2>
             <ul class="space-y-3">
-              <li *ngFor="let p of participantsArray" class="flex items-center justify-between bg-gray-700 p-3 rounded-md">
-                <span class="font-medium truncate">{{ p[1].alias }} <span *ngIf="p[0] === session.created_by">(Manager)</span></span>
-                <span *ngIf="session.votes_revealed; else voteStatus" class="text-xl font-bold text-teal-400">{{ p[1].vote || '-' }}</span>
+              <li
+                *ngFor="let p of participantsArray"
+                class="flex items-center justify-between bg-gray-700 p-3 rounded-md"
+              >
+                <span class="font-medium truncate"
+                  >{{ p[1].alias }}
+                  <span *ngIf="p[0] === session.created_by"
+                    >(Manager)</span
+                  ></span
+                >
+                <span
+                  *ngIf="session.votes_revealed; else voteStatus"
+                  class="text-xl font-bold text-teal-400"
+                  >{{ p[1].vote || "-" }}</span
+                >
                 <ng-template #voteStatus>
-                  <span [ngClass]="{'bg-green-500': p[1].vote, 'bg-gray-500': !p[1].vote}" class="w-6 h-6 rounded-full"></span>
+                  <span
+                    [ngClass]="{
+                      'bg-green-500': p[1].vote,
+                      'bg-gray-500': !p[1].vote,
+                    }"
+                    class="w-6 h-6 rounded-full"
+                  ></span>
                 </ng-template>
               </li>
             </ul>
 
-            <div *ngIf="isFacilitator" class="mt-6 pt-6 border-t border-gray-700 space-y-3">
+            <div
+              *ngIf="isFacilitator"
+              class="mt-6 pt-6 border-t border-gray-700 space-y-3"
+            >
               <h3 class="text-xl font-semibold mb-2">Manager Controls</h3>
-              <button (click)="revealVotes()" [disabled]="session.votes_revealed" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md disabled:bg-gray-500">
-                {{ session.votes_revealed ? 'Votes Revealed' : 'Reveal Votes (' + (allVoted ? 'All Voted' : 'Force') + ')' }}
+              <button
+                (click)="revealVotes()"
+                [disabled]="session.votes_revealed"
+                class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md disabled:bg-gray-500"
+              >
+                {{
+                  session.votes_revealed
+                    ? "Votes Revealed"
+                    : "Reveal Votes (" +
+                      (allVoted ? "All Voted" : "Force") +
+                      ")"
+                }}
               </button>
-              <button (click)="resetVoting()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md">
+              <button
+                (click)="resetVoting()"
+                class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md"
+              >
                 New Voting Round
               </button>
             </div>
@@ -84,26 +168,50 @@
     </div>
     <ng-template #setAliasScreen>
       <div class="flex items-center justify-center h-screen">
-        <div class="w-full max-w-sm bg-gray-800 rounded-lg shadow-lg p-8">
-          <h2 class="text-2xl font-bold mb-6 text-center text-white">Set Your Alias</h2>
-          <input type="text" [(ngModel)]="alias" placeholder="Enter your name or alias" class="w-full p-3 bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 text-white" />
-          <button (click)="setAlias()" [disabled]="!alias.trim()" class="w-full mt-4 bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-md transition duration-300 disabled:bg-gray-500">
+        <form
+          (ngSubmit)="setAlias()"
+          class="w-full max-w-sm bg-gray-800 rounded-lg shadow-lg p-8"
+        >
+          <h2 class="text-2xl font-bold mb-6 text-center text-white">
+            Set Your Alias
+          </h2>
+          <input
+            name="alias"
+            type="text"
+            [(ngModel)]="alias"
+            placeholder="Enter your name or alias"
+            class="w-full p-3 bg-gray-700 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 text-white"
+          />
+          <button
+            type="submit"
+            [disabled]="!alias.trim()"
+            class="w-full mt-4 bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-md transition duration-300 disabled:bg-gray-500"
+          >
             Join
           </button>
-        </div>
+        </form>
       </div>
     </ng-template>
   </div>
   <ng-template #loading>
-    <div class="flex items-center justify-center h-screen text-white"><div class="text-xl">Loading session...</div></div>
+    <div class="flex items-center justify-center h-screen text-white">
+      <div class="text-xl">Loading session...</div>
+    </div>
   </ng-template>
 </div>
 <ng-template #notFound>
   <div class="flex flex-col items-center justify-center h-screen p-4">
-    <div class="w-full max-w-md bg-gray-800 rounded-lg shadow-lg p-8 text-center">
+    <div
+      class="w-full max-w-md bg-gray-800 rounded-lg shadow-lg p-8 text-center"
+    >
       <h1 class="text-3xl font-bold mb-4 text-red-500">Session Not Found</h1>
-      <p class="text-gray-400 mb-6">Please check the ID or create a new session.</p>
-      <button (click)="leaveSession()" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-md">
+      <p class="text-gray-400 mb-6">
+        Please check the ID or create a new session.
+      </p>
+      <button
+        (click)="leaveSession()"
+        class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-md"
+      >
         Back to Lobby
       </button>
     </div>
