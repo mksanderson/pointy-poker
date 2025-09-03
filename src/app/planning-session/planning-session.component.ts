@@ -6,6 +6,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs'; // Import firstValueFrom
+import confetti from 'canvas-confetti';
 
 @Component({
   imports: [FormsModule, ReactiveFormsModule, CommonModule],
@@ -27,6 +28,7 @@ export class PlanningSessionComponent implements OnInit, OnDestroy {
 
   votingCards = ['0', '1', '2', '3', '5', '8', '13', '21', '?'];
   private sessionSub!: RealtimeChannel;
+  private previousVotesRevealed = false;
 
   constructor(
     private readonly supabase: SupabaseService,
@@ -91,9 +93,14 @@ export class PlanningSessionComponent implements OnInit, OnDestroy {
 
     // 4. Now, subscribe to real-time changes for ongoing updates
     this.sessionSub = this.supabase.onSessionChanges(this.sessionId, (payload) => {
+      const wasRevealed = this.previousVotesRevealed;
       this.session = payload.new;
       this.updateLocalStateFromSession();
       this.loading = false; // Stop loading only after we have data
+      if (!wasRevealed && this.session?.votes_revealed) {
+        this.launchConfetti();
+      }
+      this.previousVotesRevealed = !!this.session?.votes_revealed;
     });
 
     // Also explicitly fetch the latest data to populate the view immediately
@@ -101,6 +108,7 @@ export class PlanningSessionComponent implements OnInit, OnDestroy {
     if (finalSession) {
       this.session = finalSession;
       this.updateLocalStateFromSession();
+      this.previousVotesRevealed = !!finalSession.votes_revealed;
     }
     this.loading = false; // Stop loading
   }
@@ -267,6 +275,25 @@ export class PlanningSessionComponent implements OnInit, OnDestroy {
   async revealVotes() {
     if (!this.isFacilitator) return;
     await this.supabase.updateSession(this.sessionId, {votes_revealed: true});
+    this.previousVotesRevealed = true;
+    this.launchConfetti();
+  }
+
+  private launchConfetti() {
+    const duration = 3 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+      confetti({ ...defaults, particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } });
+    }, 250);
   }
 
   async resetVoting() {
@@ -291,15 +318,16 @@ export class PlanningSessionComponent implements OnInit, OnDestroy {
           votes_revealed: false,
           current_ticket: ''
         });
-        
+
         if (!error) {
           // Success - update local state
-          this.session = { 
-            ...this.session, 
+          this.session = {
+            ...this.session,
             participants: resetParticipants,
             votes_revealed: false,
             current_ticket: ''
           };
+          this.previousVotesRevealed = false;
           break;
         }
         
