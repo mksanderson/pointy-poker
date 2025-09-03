@@ -25,7 +25,7 @@ export class PlanningSessionComponent implements OnInit, OnDestroy {
   jiraTicket = '';
   loading = true; // We will manage this carefully
 
-  votingCards = ['0', '1', '2', '3', '5', '8', '13', '21', '?', '☕'];
+  votingCards = ['0', '1', '2', '3', '5', '8', '13', '21', '?'];
   private sessionSub!: RealtimeChannel;
 
   constructor(
@@ -161,12 +161,15 @@ export class PlanningSessionComponent implements OnInit, OnDestroy {
     return votes.reduce((acc, vote) => ({...acc, [vote]: (acc[vote] || 0) + 1}), {} as { [key: string]: number });
   }
 
-  get averageVote(): number {
-    if (!this.session) return 0;
+  get averageVote(): number | null {
+    if (!this.session) return null;
     const numericVotes = this.participantsArray
-      .map(([, p]) => Number(p.vote))
-      .filter(v => !isNaN(v));
-    return numericVotes.length > 0 ? numericVotes.reduce((sum, v) => sum + v, 0) / numericVotes.length : 0;
+      .map(([, p]) => p.vote)
+      .filter((v): v is string => v !== null && !isNaN(Number(v)))
+      .map(v => Number(v));
+    return numericVotes.length > 0
+      ? numericVotes.reduce((sum, v) => sum + v, 0) / numericVotes.length
+      : null;
   }
 
   updateLocalStateFromSession() {
